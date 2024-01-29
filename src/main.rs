@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -43,7 +44,7 @@ fn store_config_file(url: &String, config_directory_path: &PathBuf) {
     config_file.write_all(&download_config(&url).as_bytes()).expect("Can not write config file");
 }
 
-fn load_config() -> Vec<Config> {
+fn load_config() -> HashMap<String, Config> {
     let config_directory_path = get_config_directory_path();
     let bytes = fs::read(config_directory_path).expect("Can not read config");
     serde_json::from_slice(&bytes).expect("Can not deserialize config")
