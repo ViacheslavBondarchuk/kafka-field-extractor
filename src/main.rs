@@ -68,7 +68,7 @@ fn handle_extract_command(brand: String, fields: Vec<String>, output_file_locati
 }
 
 fn handle_show_config() {
-    println!("{:?}", load_config())
+    println!("{:#?}", load_config())
 }
 
 

@@ -3,11 +3,6 @@
     "bootstrap_servers": "",
     "topic": "",
     "max_poll_records": 500,
-    "request_timeout_ms": 5000,
-    "security_protocol": "",
-    "security_inter_broker_protocol": "",
-    "ssl_enabled_protocols": [],
-    "ssl_key_password": "",
-    "ssl_endpoint_identification_algorithm": ""
+    "request_timeout_ms": 5000
   }
 }
