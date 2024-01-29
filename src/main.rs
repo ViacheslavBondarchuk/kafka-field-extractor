@@ -1,67 +1,78 @@
-use std::{fs, io};
-use std::collections::HashSet;
+use std::fs;
 use std::fs::File;
+use std::io::Write;
 use std::path::PathBuf;
 
 use clap::Parser;
-use serde::Deserialize;
 
-const CONFIG_FILE_NAME_TEMPLATE: &str = ".kfe.json";
-const CONFIG_FILE_URL: &str = "https://raw.githubusercontent.com/ViacheslavBondarchuk/kafka-field-extractor/master/.kfe.json";
+use crate::constants::*;
+use crate::model::{Arguments, Command, Config};
 
-fn main() {
-    let arguments: Arguments = Arguments::parse();
-    let brand = &arguments.brand.unwrap_or("".to_string());
-    let matched_configs: Vec<Config> = load_config().into_iter().filter(|config| config.brand.eq(brand)).collect();
-    let config = matched_configs.first().expect("Config for brand {} does not exists");
-    print!("Loaded config: {:?}", config);
+mod model;
+mod constants;
+
+fn main() -> () {
+    match Arguments::parse().command {
+        Command::Extract {
+            brand,
+            fields,
+            output_file_location
+        } => handle_extract_command(brand, fields, output_file_location),
+        Command::GetConfigFile {
+            url,
+            overwrite
+        } => handle_get_config_command(url, overwrite),
+        Command::ShowConfig => handle_show_config(),
+    }
 }
 
-fn get_config_file_path_buf() -> PathBuf {
-    let mut config_dir_path_buf = dirs::config_dir().expect("Ca not get configuration directory");
+fn get_config_directory_path() -> PathBuf {
+    let mut config_dir_path_buf = dirs::config_dir().expect("Can not get config directory");
     config_dir_path_buf.push(CONFIG_FILE_NAME_TEMPLATE);
     config_dir_path_buf
 }
 
-fn download_config(store_path: &PathBuf) {
-    println!("Downloading config file....");
-    let body = reqwest::blocking::get(CONFIG_FILE_URL).expect("Can not download config")
-        .text()
-        .expect("Can not extract body");
-    println!("Saving config: {}", store_path.display());
-    let mut config_file = File::create(store_path).expect("Can not create config file");
-    io::copy(&mut body.as_bytes(), &mut config_file).expect("Can not store file");
+fn download_config(url: &str) -> String {
+    println!("Downloading configuration from {}", url);
+    let response = reqwest::blocking::get(url).expect("Can not download config");
+    response.text().expect("Can not extract body")
+}
+
+fn store_config_file(url: &String, config_directory_path: &PathBuf) {
+    let mut config_file = File::create(&config_directory_path).expect("Can not create config file");
+    config_file.write_all(&download_config(&url).as_bytes()).expect("Can not write config file");
 }
 
 fn load_config() -> Vec<Config> {
-    let config_path_buf = get_config_file_path_buf();
-    if !config_path_buf.exists() {
-        download_config(&config_path_buf);
+    let config_directory_path = get_config_directory_path();
+    let bytes = fs::read(config_directory_path).expect("Can not read config");
+    serde_json::from_slice(&bytes).expect("Can not deserialize config")
+}
+
+fn handle_get_config_command(url: String, overwrite: bool) {
+    let config_directory_path = get_config_directory_path();
+    if config_directory_path.exists() && !overwrite {
+        panic!("Config exists. For detail information use --help")
+    } else if config_directory_path.exists() && overwrite {
+        println!("Overwriting existing config in {}", &config_directory_path.display());
+        fs::remove_file(&config_directory_path).expect("Can not delete config");
+        store_config_file(&url, &config_directory_path);
+    } else {
+        store_config_file(&url, &config_directory_path);
     }
+}
 
-    println!("Reading config from: {}", config_path_buf.display());
-    serde_json::from_slice(&fs::read(&config_path_buf).expect("Can not read config"))
-        .expect("Can not deserialize config")
+fn handle_extract_command(brand: String, fields: Vec<String>, output_file_location: Option<String>) {
+    print!("Extract")
+}
+
+fn handle_show_config() {
+    println!("{:?}", load_config())
 }
 
 
-#[derive(Parser, Debug)]
-#[command(author, version)]
-struct Arguments {
-    #[arg(short, long)]
-    brand: Option<String>,
-}
 
-#[derive(Deserialize, Debug)]
-struct KafkaConfig {
-    bootstrap_servers: HashSet<String>,
-    topic: String,
-}
 
-#[derive(Debug, Deserialize)]
-struct Config {
-    brand: String,
-    fields: HashSet<String>,
-    file_location: String,
-    kafka_config: KafkaConfig,
-}
+
+
+

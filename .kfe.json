@@ -9,11 +9,9 @@
       "leagueId",
       "leagueName"
     ],
-    "file_location": "~",
+    "file_location": "",
     "kafka_config": {
-      "bootstrap_servers": [
-        ""
-      ],
+      "bootstrap_servers": [],
       "topic": ""
     }
   }
