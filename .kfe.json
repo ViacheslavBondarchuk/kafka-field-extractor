@@ -1,5 +1,6 @@
-[
-  {
-    "brand": "lsb-nl"
-  }
-]
+[{
+  "brand": "lsb-nl",
+  "fields": ["sportId", "sportName", "regionId", "regionName", "leagueId", "leagueName"],
+  "file_location": "~",
+  "record_type": "Json"
+}]

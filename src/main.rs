@@ -11,7 +11,10 @@ const CONFIG_FILE_URL: &str = "https://raw.githubusercontent.com/ViacheslavBonda
 
 fn main() {
     let arguments: Arguments = Arguments::parse();
-    load_config(&arguments.brand);
+    let brand = &arguments.brand.unwrap_or("".to_string());
+    let matched_configs: Vec<Config> = load_config().into_iter().filter(|config| config.brand.eq(brand)).collect();
+    let config = matched_configs.first().expect("Config for brand {} does not exists");
+    print!("Loaded config: {:?}", config);
 }
 
 fn get_config_file_path_buf() -> PathBuf {
@@ -25,19 +28,20 @@ fn download_config(store_path: &PathBuf) {
     let body = reqwest::blocking::get(CONFIG_FILE_URL).expect("Can not download config")
         .text()
         .expect("Can not extract body");
+    println!("Saving config by path: {}", store_path.display());
     let mut config_file = File::create(store_path).expect("Can not create config file");
     io::copy(&mut body.as_bytes(), &mut config_file).expect("Can not store file");
 }
 
-fn load_config(brand: &String) {
+fn load_config() -> Vec<Config> {
     let config_path_buf = get_config_file_path_buf();
     if !config_path_buf.exists() {
         download_config(&config_path_buf);
     }
 
-    let configs: Vec<Config> = serde_json::from_slice(&fs::read(&config_path_buf).expect("Can not read config"))
-        .expect("Can not deserialize config");
-    println!("Loading config for brand: {} by path: {}", brand, &config_path_buf.display());
+    println!("Reading config from: {}", config_path_buf.display());
+    serde_json::from_slice(&fs::read(&config_path_buf).expect("Can not read config"))
+        .expect("Can not deserialize config")
 }
 
 
@@ -45,7 +49,7 @@ fn load_config(brand: &String) {
 #[command(author, version)]
 struct Arguments {
     #[arg(short, long)]
-    brand: String,
+    brand: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
