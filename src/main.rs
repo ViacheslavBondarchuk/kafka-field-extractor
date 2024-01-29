@@ -28,7 +28,7 @@ fn download_config(store_path: &PathBuf) {
     let body = reqwest::blocking::get(CONFIG_FILE_URL).expect("Can not download config")
         .text()
         .expect("Can not extract body");
-    println!("Saving config by path: {}", store_path.display());
+    println!("Saving config: {}", store_path.display());
     let mut config_file = File::create(store_path).expect("Can not create config file");
     io::copy(&mut body.as_bytes(), &mut config_file).expect("Can not store file");
 }
@@ -52,10 +52,10 @@ struct Arguments {
     brand: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-enum RecordType {
-    Avro,
-    Json,
+#[derive(Deserialize, Debug)]
+struct KafkaConfig {
+    bootstrap_servers: HashSet<String>,
+    topic: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,5 +63,5 @@ struct Config {
     brand: String,
     fields: HashSet<String>,
     file_location: String,
-    record_type: RecordType,
+    kafka_config: KafkaConfig,
 }
