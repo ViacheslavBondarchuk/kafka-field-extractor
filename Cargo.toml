@@ -1,0 +1,12 @@
+[package]
+name = "kafka-field-extractor"
+version = "0.1.0"
+edition = "2021"
+authors = ["VBondarchuk"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.4.18", features = ["derive", "wrap_help"] }
+dirs = { version = "5.0.1" }
+serde = { version = "1.0.196", features = ["derive"] }
