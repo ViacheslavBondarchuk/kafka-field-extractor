@@ -5,26 +5,32 @@ use crate::constants::CONFIG_FILE_URL;
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
-    ShowConfig,
-    GetConfigFile {
-        #[clap(short, long, default_value = CONFIG_FILE_URL)]
+    #[command(about = "Show config file")]
+    Scf,
+    #[command(about = "Edit config file")]
+    Ecf,
+    #[command(about = "Get config file")]
+    Gcf {
+        #[clap(short, long, default_value = CONFIG_FILE_URL, help = "File location URL")]
         url: String,
-        #[clap(short, long, action)]
+        #[clap(short, long, action, help = "Overwrite current config")]
         overwrite: bool,
     },
-    Extract {
-        #[clap(short, long)]
+    #[command(about = "Extract fields for specific brand")]
+    Ext {
+        #[clap(short, long, help = "Fields to extract")]
         fields: Vec<String>,
-        #[clap(short, long)]
+        #[clap(short, long, help = "Brand")]
         brand: String,
-        #[clap(short, long)]
+        #[clap(short, long, help = "Output file path. If not specified will be use current location")]
         output_file_location: Option<String>,
+        #[clap(short, long, action, help = "Verbose info about consuming")]
+        verbose: bool,
     },
 }
 
 #[derive(Parser, Debug)]
-#[command(propagate_version = true)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about)]
 pub struct Arguments {
     #[command(subcommand)]
     pub command: Command,
@@ -32,18 +38,26 @@ pub struct Arguments {
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    bootstrap_servers: String,
-    topic: String,
-    max_poll_records: i32,
-    request_timeout_ms: i64,
     #[serde(default)]
-    security_protocol: Option<String>,
+    pub bootstrap_servers: String,
     #[serde(default)]
-    security_inter_broker_protocol: Option<String>,
+    pub topic: String,
     #[serde(default)]
-    ssl_enabled_protocols: Option<Vec<String>>,
+    pub schema_registry: String,
     #[serde(default)]
-    ssl_key_password: Option<String>,
+    pub security_protocol: Option<String>,
     #[serde(default)]
-    ssl_endpoint_identification_algorithm: Option<String>,
+    pub security_inter_broker_protocol: Option<String>,
+    #[serde(default)]
+    pub ssl_enabled_protocols: Option<String>,
+    #[serde(default)]
+    pub ssl_key_location: Option<String>,
+    #[serde(default)]
+    pub ssl_key_password: Option<String>,
+    #[serde(default)]
+    pub ssl_certificate_location: Option<String>,
+    #[serde(default)]
+    pub ssl_ca_location: Option<String>,
+    #[serde(default)]
+    pub ssl_endpoint_identification_algorithm: Option<String>,
 }

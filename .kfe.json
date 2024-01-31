@@ -1,8 +1,4 @@
 {
-  "lsb-nl": {
-    "bootstrap_servers": "",
-    "topic": "",
-    "max_poll_records": 500,
-    "request_timeout_ms": 5000
+  "<brand>": {
   }
 }
